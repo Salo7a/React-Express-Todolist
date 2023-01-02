@@ -4,12 +4,12 @@ const {faker} = require('@faker-js/faker');
 const randomstring = require("randomstring");
 const bcrypt = require('bcryptjs')
 
-let SeedDB = async ()=>{
+let SeedDB = async () => {
     try {
         let todos = []
         let user = await User.findOne({id: "123"})
         let hashedPass = bcrypt.hashSync("password", 10)
-        if(!user){
+        if (!user) {
             await User.create({
                 id: 123,
                 email: "test@example.com",
@@ -17,7 +17,7 @@ let SeedDB = async ()=>{
                 name: "John Doe",
             })
         }
-        for (let i = 0; i<10; i++){
+        for (let i = 0; i < 10; i++) {
             let id = randomstring.generate(10);
             todos.push({
                 id: id,
