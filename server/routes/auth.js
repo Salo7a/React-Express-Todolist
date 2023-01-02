@@ -3,8 +3,8 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const User = require("../models/UserSchema")
 const passport = require('passport');
-const {isAuth, NotAuth} = require('../utils/filters')
-const {check, validationResult, body} = require('express-validator');;
+const {isAuth, NotAuth} = require('../utils/filters');
+const {check, validationResult, body} = require('express-validator');
 
 
 
@@ -13,6 +13,9 @@ router.post('/register',[
   check('email').trim().isEmail().withMessage('Invalid Email').normalizeEmail(),
   check('password').isLength({min: 5}).withMessage('Password Must Be At Least 5 Chars Long')
 ],async function(req, res, next) {
+    // Return error if validation fails
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() })
   // Get new user data
    let {name, email, password} = req.body
    try{
@@ -20,9 +23,8 @@ router.post('/register',[
    let id = Math.floor(Math.random() * 1000000000) + 1
   //  Hash Password
    let hashedPass = bcrypt.hashSync(password, 10)
-  //  TODO: Check if email exists
+  // Check if email exists
   let user = await User.emailExist(email)
-  console.log(user);
   if(user) return res.status(406).send({msg: "Email Already Exists"})
   //  Create new user
    let newuser = await User.create({
@@ -39,9 +41,7 @@ router.post('/register',[
 });
 
 /* Login */
-router.post('/login', NotAuth, passport.authenticate('local', {
-  failureRedirect: '/auth/login'
-}), function (req, res, next) {;
+router.post('/login', passport.authenticate('local'), function (req, res, next) {;
   if (!req.body.remember_me) {
       return next();
   }
@@ -55,13 +55,16 @@ router.post('/login', NotAuth, passport.authenticate('local', {
   });
 },
 function (req, res) {
-  res.redirect('/');
+  res.status(200).send({msg: "Logged In Successfully"});
 });
 
 /* Logout*/
-router.get('/logout', function (req, res, next) {
-  req.logout();
-  res.redirect('/auth/login');
+router.get('/logout', isAuth, function (req, res, next) {
+    req.logout(function(err) {
+        if (err) { return res.status(500).send({msg: "Error"}); }
+        res.status(200).send({msg: "Logged Out Successfully"});
+    });
+
 });
 
 

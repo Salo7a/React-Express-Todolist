@@ -2,19 +2,20 @@ const Todo = require('../models/TodoSchema');
 const User = require('../models/UserSchema');
 const {faker} = require('@faker-js/faker');
 const randomstring = require("randomstring");
+const bcrypt = require('bcryptjs')
 
 let SeedDB = async ()=>{
     try {
         let todos = []
-        let user = User.findOne({id: "123"})
+        let user = await User.findOne({id: "123"})
         let hashedPass = bcrypt.hashSync("password", 10)
         if(!user){
-            user = await User.create({
-            id: 123,
-            email: "test@example.com",
-            password: hashedPass,
-            name: "John Doe",
-        })
+            await User.create({
+                id: 123,
+                email: "test@example.com",
+                password: hashedPass,
+                name: "John Doe",
+            })
         }
         for (let i = 0; i<10; i++){
             let id = randomstring.generate(10);
@@ -24,7 +25,7 @@ let SeedDB = async ()=>{
                 TaskName: `Meet ` + faker.name.firstName()
             })
         }
-        
+
         await Todo.create(todos)
         console.log("Added 10 Todos")
         process.exit()

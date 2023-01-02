@@ -1,27 +1,17 @@
-const createError = require("http-errors");
+const enableAuth =  require('../config/config').AUTHENABLED;
 
 module.exports = {
     isAuth: function (req, res, next) {
-        if (req.isAuthenticated()) {
-            if (req.session.returnTo) {
-                res.redirect(req.session.returnTo);
-                delete req.session.returnTo;
-            } else {
+        if (req.isAuthenticated() || !enableAuth) {
                 return next();
-            }
         } else {
-            if (req.originalUrl !== '/auth/logout' && req.originalUrl !== '/auth/login') {
-                req.session.returnTo = req.originalUrl || req.url;
-            } else {
-                req.session.returnTo = "/"
-            }
-            res.redirect('/auth/login');
+            res.status(401).send({msg: "You need to be logged in!"});
         }
     },
     NotAuth: function (req, res, next) {
-        if (!req.isAuthenticated()) {
+        if (!req.isAuthenticated() || !enableAuth ) {
             return next();
         }
-        res.redirect('/');
+        res.status(401).send({msg: "You are logged in!"});
     }
 }
