@@ -28,9 +28,8 @@ passport.deserializeUser(async function (userId, done) {
     if (user) {
         done(null, user)
     } else {
-        done(err, null);
+        done("Deserialization Error", null);
     }
-    ;
 });
 
 function issueToken(user, done) {

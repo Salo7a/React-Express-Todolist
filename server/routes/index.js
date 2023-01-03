@@ -7,12 +7,12 @@ const {isAuth, NotAuth} = require('../utils/filters');
 // Enforces Auth or Not, Disable by Default as Authentication is not yet implemented in The React App
 const enableAuth = require('../config/config').AUTHENABLED;
 
-/* Get Todos for user, requires user id as a parameter*/
+/* Get All Todos for user, requires user id as a parameter*/
 router.get('/todos/:id', isAuth, async function (req, res, next) {
     // Get User Info
-    let userId = req.params.id
+    let userId = req.params.id;
     // Deny Access if Authentication enabled and userId doesn't match current user
-    if (enableAuth && userId !== req.user.id) return res.status(403).send({msg: "Unauthorized"});
+    if (enableAuth && userId != req.user.id) return res.status(403).send({msg: "Unauthorized"});
     try {
         let user = await User.findOne({id: userId});
         // Return Error if User Not Found
@@ -35,8 +35,11 @@ router.get('/todo/:todoId', isAuth, async function (req, res, next) {
     try {
         // Try to find a todo with the given id, return 404 if none was found.
         let todo = await Todo.findOne({id: todoId})
-        if (todo) return res.status(200).send({todo})
-        else return res.status(404).send({msg: "No Task With This ID Was Found"})
+        if (todo) {
+            // Deny Access if Authentication enabled and todo user id doesn't match todo's id
+            if (enableAuth && todo.UserId != req.user.id) return res.status(403).send({msg: "Unauthorized"});
+            return res.status(200).send({todo})
+        } else return res.status(404).send({msg: "No Task With This ID Was Found"})
     } catch (e) {
         console.error(e)
         return res.status(500).send({msg: "Server Error"})
@@ -53,6 +56,8 @@ router.post('/todos/:id', isAuth, async function (req, res, next) {
     if (!user) {
         return res.status(401).send({msg: "User Not Found"});
     }
+    // Deny if Authentication enabled and userId not equal loggedin userid
+    if (enableAuth && userId != req.user.id) return res.status(403).send({msg: "Unauthorized"});
     // TODO: use logged in user's id instead
     // Generate Id For Todo (For ease of use during postman testing)
     let id = randomstring.generate(10);
@@ -77,6 +82,8 @@ router.put('/todo/:todoId', isAuth, async function (req, res, next) {
         let todo = await Todo.findOne({id: todoId})
         if (!todo) return res.status(401).send({msg: "Todo Not Found"});
         // TODO: Check if owned by current user
+        // Deny Access if Authentication enabled and todo user id doesn't match todo's id
+        if (enableAuth && todo.UserId != req.user.id) return res.status(403).send({msg: "Unauthorized"});
         // Update Todo
         if (isCompleted != null) todo.isCompleted = isCompleted
         if (TaskName != null) todo.TaskName = TaskName
@@ -97,6 +104,8 @@ router.delete('/todo/:todoId', isAuth, async function (req, res, next) {
         let todo = await Todo.findOne({id: todoId})
         if (!todo) return res.status(401).send({msg: "Todo Not Found"});
         // TODO: Check if owned by current user
+        // Deny Access if Authentication enabled and todo user id doesn't match todo's id
+        if (enableAuth && todo.UserId != req.user.id) return res.status(403).send({msg: "Unauthorized"});
         // Delete Todo
         await Todo.deleteOne({id: todoId})
         res.status(202).send({msg: "Deleted Successfully"})
