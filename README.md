@@ -1,4 +1,4 @@
-# React Todo List With NodeJS API & MongoDB
+# React Todo List With NodeJS RESTful API & MongoDB
 
 * To Start, first create a db in mongo and set the connection string in server/mongoose.js
 * Start the server then the client, by default the client (React App) runs on port 3000
